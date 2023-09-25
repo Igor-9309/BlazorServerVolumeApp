@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>D:\aaa\blazor-samples-main\7.0\BlazorServerSignalRApp\bin\Release\net7.0\publish\</_PublishTargetUrl>
+    <History>True|2023-09-17T16:09:18.0938998Z;True|2023-09-17T17:11:25.4520198+02:00;True|2023-09-17T16:46:40.8819606+02:00;True|2023-09-17T16:29:55.3374719+02:00;True|2023-09-17T16:28:34.4975383+02:00;True|2023-09-17T16:28:17.4193699+02:00;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,142 @@
+@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.SignalR;
+@using Polly;
+@inject NavigationManager Navigation
+@inject NotificationService notificationService
+@implements IAsyncDisposable
+
+<RadzenTemplateForm TItem=@FormData Data=@Data Submit=@Send Class="rz-py-12">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Left" AlignItems=AlignItems.Center Gap="1rem" Class="rz-mt-12">
+        <RadzenLabel Text=@(Data.Volume.ToString()) />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" AlignItems=AlignItems.Center Gap="1rem" Class="rz-mt-8 rz-mb-4">
+        <RadzenButton ButtonType="ButtonType.Button" Variant="Variant.Outlined" Size="ButtonSize.Medium" Icon="remove" Click=@Minus />
+        <RadzenSlider TValue="int?" @bind-Value=@Data.Volume Min="0" Max="100" />
+        <RadzenButton ButtonType="ButtonType.Button" Variant="Variant.Outlined" Size="ButtonSize.Medium" Icon="add" Click=@Plus />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+        <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Icon="save" Text="Mentés" id="dy-save" />
+        <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Large" Icon="cancel" Text="Mégse" Click=@Cancel />
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+
+    class FormData
+    {
+        public int? Volume { get; set; }
+    }
+
+    FormData Data { get; set; } = new();
+
+    int disposed;
+
+    HubConnection hubConnection;
+
+    protected override void OnInitialized()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/volumehub"))
+            .Build();
+
+        hubConnection.On<int>(Contants.VolumeHubMethods.LoadVolumeSync, (volume) =>
+        {
+            Data.Volume = volume;
+            InvokeAsync(StateHasChanged);
+        });
+
+        hubConnection.On<int>(Contants.VolumeHubMethods.ReceiveVolumeSync, (volume) =>
+        {
+            Data.Volume = volume;
+            InvokeAsync(StateHasChanged);
+            notificationService.Notify(NotificationSeverity.Success, $"Hangerő módosult: {volume}", duration: 1000);
+        });
+
+        // Connection has closed by server
+        hubConnection.Closed += CloseConnectionAsync;
+
+        // No need to await, connection is starting async by Polly in the background
+        _ = StartConnectionWithRetryAsync();
+    }
+
+    private void Plus()
+    {
+        InvokeAsync(() =>
+        {
+            if (Data.Volume < 100)
+            {
+                Data.Volume++;
+            }
+        });
+    }
+
+    private void Minus()
+    {
+        InvokeAsync(() =>
+        {
+            if (Data.Volume > 0)
+            {
+                Data.Volume--;
+            }
+        });
+    }
+
+    private async Task Send()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync(Contants.VolumeHubMethods.SendVolumeSync, Data.Volume);
+        }
+    }
+
+    private async Task Cancel()
+    {
+        if (hubConnection is not null)
+        {
+            Data.Volume = await hubConnection.InvokeAsync<int>(Contants.VolumeHubMethods.ReLoadVolumeSync);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // Start to build first time connection or after closed by server with forever retry
+    private async Task StartConnectionWithRetryAsync()
+    {
+        await Polly.Policy
+            .Handle<HubException>(exception =>
+            {
+                return !HasDisposed() && hubConnection?.State != HubConnectionState.Connected;
+            })
+            .WaitAndRetryForeverAsync(_ => TimeSpan.FromSeconds(60))
+            .ExecuteAsync(async () =>
+            {
+                if (!HasDisposed())
+                {
+                    await hubConnection.StartAsync();
+                }
+            });
+    }
+
+    private Task CloseConnectionAsync(Exception _)
+    {
+        // No need to await, connection is starting async by Polly in the background
+        return StartConnectionWithRetryAsync();
+    }
+
+    private bool HasDisposed() => Volatile.Read(ref disposed) == 1;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (Interlocked.Exchange(ref disposed, 1) == 1)
+        {
+            return;
+        }
+
+        if (hubConnection is not null)
+        {
+            hubConnection.Closed -= CloseConnectionAsync;
+            await hubConnection.DisposeAsync();
+            hubConnection = null;
+        }
+    }
+}
