@@ -34,7 +34,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes =
-    ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });
+    ResponseCompressionDefaults.MimeTypes.Concat(["application/octet-stream"]);
 });
 
 builder.Services.AddTransient<VolumeService>();
@@ -58,4 +58,4 @@ app.MapBlazorHub();
 app.MapHub<VolumeHub>("/volumehub");
 app.MapFallbackToPage("/_Host");
 
-app.Run();
+await  app.RunAsync();

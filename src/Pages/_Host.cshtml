@@ -29,7 +29,28 @@
         <a class="dismiss">🗙</a>
     </div>
 
-    <script src="_framework/blazor.server.js"></script>
+    <script src="_framework/blazor.server.js" autostart="false"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script>
+        Blazor.start({
+            reconnectionOptions: {
+                maxRetries: 1000,
+                retryIntervalMilliseconds: 500
+            }
+        });
+    </script>
+    <script>
+        Blazor.start({
+            configureSignalR: function (builder) {
+                builder.withServerTimeout(3600000).withKeepAliveInterval(3600000);
+            });
+    </script>
+    <script>
+        Blazor.start().then(() => {
+            Blazor.defaultReconnectionHandler._reconnectCallback = function (d) {
+                document.location.reload();
+            }
+        });
+    </script>
 </body>
 </html>

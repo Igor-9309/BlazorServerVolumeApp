@@ -12,7 +12,7 @@
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" AlignItems=AlignItems.Center Gap="1rem" Class="rz-mt-8 rz-mb-4">
         <RadzenButton ButtonType="ButtonType.Button" Variant="Variant.Outlined" Size="ButtonSize.Medium" Icon="remove" Click=@Minus />
-        <RadzenSlider TValue="int?" @bind-Value=@Data.Volume Min="0" Max="100" />
+        <RadzenSlider TValue="int?" @bind-Value=@Data.Volume Min="0" Max="100" Change=@FrontEnd />
         <RadzenButton ButtonType="ButtonType.Button" Variant="Variant.Outlined" Size="ButtonSize.Medium" Icon="add" Click=@Plus />
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
@@ -62,24 +62,36 @@
 
     private void Plus()
     {
-        InvokeAsync(() =>
+        InvokeAsync(async () =>
         {
             if (Data.Volume < 100)
             {
                 Data.Volume++;
+
+                await FrontEnd();
             }
         });
     }
 
     private void Minus()
     {
-        InvokeAsync(() =>
+        InvokeAsync(async () =>
         {
             if (Data.Volume > 0)
             {
                 Data.Volume--;
+
+                await FrontEnd();
             }
         });
+    }
+
+    private async Task FrontEnd()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync(Contants.VolumeHubMethods.FrontEndVolumeSync, hubConnection.ConnectionId, Data.Volume);
+        }
     }
 
     private async Task Send()
@@ -95,6 +107,7 @@
         if (hubConnection is not null)
         {
             Data.Volume = await hubConnection.InvokeAsync<int>(Contants.VolumeHubMethods.ReLoadVolumeSync);
+            await FrontEnd();
             await InvokeAsync(StateHasChanged);
         }
     }

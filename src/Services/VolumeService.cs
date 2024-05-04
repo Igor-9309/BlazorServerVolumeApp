@@ -15,7 +15,7 @@ namespace BlazorServerVolumeApp.Services
                 var devEnum = new MMDeviceEnumerator(Guid.NewGuid());
                 using var device = devEnum.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
 
-                device.AudioEndpointVolume.MasterVolumeLevelScalar = MathF.Round(volume / 100.0f, 2);
+                device.AudioEndpointVolume.MasterVolumeLevelScalar = MathF.Round(volume / 100.0f, 4);
 
                 return device.AudioEndpointVolume.MasterVolumeLevelScalar;
             }
