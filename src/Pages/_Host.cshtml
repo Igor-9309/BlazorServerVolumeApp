@@ -11,7 +11,7 @@
     <base href="~/" />
     <link rel="icon" type="image/png" href="favicon.png" />
     @*<link href="BlazorServerVolumeApp.styles.css" rel="stylesheet" /> *@
-    <link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet">
+    <link href="_content/Radzen.Blazor/css/material-dark.css" rel="stylesheet">
     <link href="css/site.css" rel="stylesheet" />
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
@@ -36,19 +36,6 @@
             reconnectionOptions: {
                 maxRetries: 1000,
                 retryIntervalMilliseconds: 500
-            }
-        });
-    </script>
-    <script>
-        Blazor.start({
-            configureSignalR: function (builder) {
-                builder.withServerTimeout(3600000).withKeepAliveInterval(3600000);
-            });
-    </script>
-    <script>
-        Blazor.start().then(() => {
-            Blazor.defaultReconnectionHandler._reconnectCallback = function (d) {
-                document.location.reload();
             }
         });
     </script>

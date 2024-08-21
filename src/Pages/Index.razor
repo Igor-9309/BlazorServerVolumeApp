@@ -7,7 +7,7 @@
 @implements IAsyncDisposable
 
 <RadzenTemplateForm TItem=@FormData Data=@Data Submit=@Send Class="rz-py-12">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Left" AlignItems=AlignItems.Center Gap="1rem" Class="rz-mt-12">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" AlignItems=AlignItems.Center Gap="1rem" Class="rz-mt-12">
         <RadzenLabel Text=@(Data.Volume.ToString()) />
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" AlignItems=AlignItems.Center Gap="1rem" Class="rz-mt-8 rz-mb-4">

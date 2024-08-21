@@ -58,4 +58,4 @@ app.MapBlazorHub();
 app.MapHub<VolumeHub>("/volumehub");
 app.MapFallbackToPage("/_Host");
 
-await  app.RunAsync();
+await app.RunAsync();
